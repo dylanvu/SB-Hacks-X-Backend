@@ -284,6 +284,22 @@ app.post('/users/:userId/ingredients/:type', async (req, res) => {
     res.sendStatus(201);
 })
 
+app.get("/leaderboard", async (req, res) => {
+    const usersCollection = db.collection("users");
+    const userPointsSorted = await usersCollection.orderBy('points', 'desc').get();
+
+    const sortedUserObjects: any[] = [];
+
+    userPointsSorted.forEach(doc => {
+        sortedUserObjects.push(doc.data())
+    });
+
+    // return this information
+    res.status(200).json({
+        data: sortedUserObjects
+    });
+})
+
 app.listen(port, () => {
     console.log(`Example app listening on http://localhost:${port}`);
 });

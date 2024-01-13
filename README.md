@@ -43,10 +43,29 @@
         ```
 * GET - leaderboard information
     * Endpoint: "/leaderboard"
+    * Implemented
     * Params:
         * none
     * Returns:
         * Array of user's Display name and points
+        ```json
+        {
+            "data": [
+                {
+                    "id": "dylanvu9@gmail.com",
+                    "pfp": "",
+                    "name": "Dylan Vu",
+                    "points": 10
+                },
+                {
+                    "name": "Steve",
+                    "id": "test@gmai.com",
+                    "pfp": "",
+                    "points": 0
+                }
+            ]
+        }
+        ```
 * PUT - user information
     * Update an existing user's information
     * Endpoint: "/users/:userId"
