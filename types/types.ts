@@ -12,6 +12,12 @@ export interface User {
      * a string that is the user profile picture
      */
     pfp: string,
+
+    /**
+     * display name
+     */
+    name: string,
+
     /**
      * password/passphrase
      */
@@ -50,6 +56,10 @@ export interface Dish {
      * a picture of the dish
      */
     img: string,
+    /**
+     * unix time stamp of when this dish was cooked
+     */
+    date: number,
 }
 
 export interface Ingredient {
@@ -62,7 +72,11 @@ export interface Ingredient {
      */
     quantity: number,
     /**
-     * unix time stamp
+     * unix time stamp of when this item should expire
      */
     expiration: number,
+    /**
+     * the number of points this is worth, individually
+     */
+    points: number,
 }
