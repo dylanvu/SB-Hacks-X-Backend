@@ -3,6 +3,7 @@ import serviceAccount from "../service_account.json";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import cors from "cors";
 
 // import what's needed for the firebase admin module
 import { initializeApp, cert } from "firebase-admin/app";
@@ -38,7 +39,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/users/*', (req, res, next) => {
     // TODO: secure this endpoint with a JWT
     next()
-})
+});
+app.use(cors())
 
 app.get('/', async (req, res) => {
     res.send("Hello World!");
