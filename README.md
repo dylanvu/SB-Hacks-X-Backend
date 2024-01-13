@@ -1,6 +1,13 @@
 # SB-Hacks-X-Backend
 
 ## Routes
+* POST - new account
+    * Endpoint: "/account"
+    * Params:
+        * username
+        * password
+    * Returns:
+        * success code
 * POST - login
     * Endpoint: "/login"
     * Params:
@@ -15,6 +22,13 @@
         * JWT
     * Returns:
         * User object
+* POST - user information
+    * Endpoint: "/users/:userId"
+    * Params:
+        * user ID
+        * JWT
+    * Returns:
+        * User object
 * GET - leaderboard information
     * Endpoint: "/leaderboard"
     * Params:
@@ -22,6 +36,7 @@
     * Returns:
         * Array of user's Display name and points
 * PUT - user information
+    * Update an existing user's information
     * Endpoint: "/users/:userId"
     * Params:
         * new user information

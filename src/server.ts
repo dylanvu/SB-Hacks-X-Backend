@@ -1,12 +1,11 @@
 import express from "express";
-
-// import the service account correctly: https://stackoverflow.com/a/70106896
 import serviceAccount from "../service_account.json";
 
 // import what's needed for the firebase admin module
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
+import { User, isUserIngredientType, Ingredient } from "../types/types";
 
 // create the firebase application using the service account
 initializeApp({
@@ -14,7 +13,7 @@ initializeApp({
 });
 
 // create the firestore database access in the application
-const db = getFirestore();
+export const db = getFirestore();
 
 const app = express();
 const port = 5000;
@@ -35,6 +34,54 @@ app.get('/', async (req, res) => {
 
     res.send("Hello World!");
 });
+
+// users
+app.post('/users/:userId', async (req, res) => {
+    console.log(req.params);
+});
+
+app.get('/users/:userId', async (req, res) => {
+    console.log(req.params);
+})
+
+// user's ingredients
+app.get('/users/:userId/ingredients/:type', async (req, res) => {
+    // figure out who's asking
+    const params = req.params;
+    const userId = params.userId;
+    const type = params.type;
+
+    // is this a valid type?
+    if (!isUserIngredientType(type)) {
+        // bad type
+        res.statusCode = 400;
+        res.send(`"${type}" is not a valid ingredient type.`)
+    }
+
+    // who is requesting this?
+    // figure out what they are asking for
+    const usersCollection = db.collection("users");
+    const userQuery = await usersCollection.where("id", "==", userId).get();
+    if (userQuery.empty) {
+        res.statusCode = 404;
+        res.send(`"${userId}" was not found`);
+    }
+
+    // get the first user that matches
+    const user = userQuery.docs[0].ref;
+    const ingredients = user.collection(type);
+
+    const ingredientSnapshot = await ingredients.get();
+
+    // return all the ingredients
+    const inventory: any[] = [];
+    ingredientSnapshot.forEach(doc => {
+        inventory.push(doc.data());
+    });
+
+    // return the ingredients
+    res.send(inventory);
+})
 
 app.listen(port, () => {
     console.log(`Example app listening on http://localhost:${port}`);

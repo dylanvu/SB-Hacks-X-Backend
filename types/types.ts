@@ -23,19 +23,15 @@ export interface User {
      */
     password: string,
 
+
     /**
-     * everything to do with the ingredients
+     * what's currently in the user's fridge
      */
-    ingredients: {
-        /**
-         * what's currently in the user's fridge
-         */
-        inventory: Ingredient[],
-        /**
-         * ingredients thrown away
-         */
-        trashed: Ingredient[],
-    }
+    inventory: Ingredient[],
+    /**
+     * ingredients thrown away
+     */
+    trashed: Ingredient[],
     // calculate additional statistics as needed: number of ingredients bought (history), number of dishes cooked (look through other document), number of ingredients trashed
 }
 
@@ -79,4 +75,10 @@ export interface Ingredient {
      * the number of points this is worth, individually
      */
     points: number,
+}
+
+const userIngredientTypeArray = ["inventory", "trashed"] as const;
+export type userIngredientType = (typeof userIngredientTypeArray)[number];
+export function isUserIngredientType(value: any): value is userIngredientType {
+    return userIngredientTypeArray.includes(value);
 }
