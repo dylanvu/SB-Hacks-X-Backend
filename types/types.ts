@@ -77,6 +77,16 @@ export interface Ingredient {
     points: number,
 }
 
+export function isIngredient(value: any) {
+    return (
+        typeof value === 'object' &&
+        typeof value.name === 'string' &&
+        typeof value.quantity === 'number' &&
+        typeof value.expiration === 'number' &&
+        typeof value.points === 'number'
+    );
+}
+
 const userIngredientTypeArray = ["inventory", "trashed"] as const;
 export type userIngredientType = (typeof userIngredientTypeArray)[number];
 export function isUserIngredientType(value: any): value is userIngredientType {
