@@ -11,6 +11,7 @@
         * success code
 * POST - login
     * Endpoint: "/login"
+    * Implemented
     * Params:
         * username
         * password
