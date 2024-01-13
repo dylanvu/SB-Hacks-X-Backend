@@ -37,14 +37,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', async (req, res) => {
-    const collection = db.collection("users");
-    const testDoc = collection.doc("test");
+    // const collection = db.collection("users");
+    // const testDoc = collection.doc("test");
 
-    // get the actual data contained in the document
-    const snapshot = await testDoc.get();
-    const data = snapshot.data();
+    // // get the actual data contained in the document
+    // const snapshot = await testDoc.get();
+    // const data = snapshot.data();
 
-    console.log(data);
+    // console.log(data);
 
     res.send("Hello World!");
 });
@@ -64,15 +64,13 @@ app.post('/account', async (req, res) => {
 
     // check if user looks good enough
     if (!isUser(user)) {
-        res.statusCode = 400;
-        res.send("The provided user information is incomplete.");
+        res.status(400).send("The provided user information is incomplete.");
         return;
     }
 
     // password
     if (!password) {
-        res.statusCode = 400;
-        res.send("Password was not provided.");
+        res.status(400).send("Password was not provided.");
         return;
     }
 
@@ -80,16 +78,14 @@ app.post('/account', async (req, res) => {
     const usersCollection = db.collection("users");
     const userQuery = await usersCollection.where("id", "==", user.id).get();
     if (!userQuery.empty) {
-        res.statusCode = 409;
-        res.send(`"${user.id}" already exists`);
+        res.status(409).send(`"${user.id}" already exists`);
         return;
     }
 
     // check password validity
 
     if (password.length === 0) {
-        res.statusCode = 400;
-        res.send("Password length was 0");
+        res.status(400).send("Password length was 0");
         return;
     }
 
@@ -114,14 +110,12 @@ app.post('/login', async (req, res) => {
     const password = req.body.password;
 
     if (!id || id.length === 0) {
-        res.statusCode = 400;
-        res.send("The user ID is missing");
+        res.status(400).send("The user ID is missing");
         return;
     }
 
     if (!password || password.length === 0) {
-        res.statusCode = 400;
-        res.send("The user password is missing");
+        res.status(400).send("The user password is missing");
         return;
     }
 
@@ -130,8 +124,7 @@ app.post('/login', async (req, res) => {
 
     const passwordQuery = await authCollection.where("id", "==", id).get();
     if (passwordQuery.empty) {
-        res.statusCode = 404;
-        res.send(`An account for "${id}" does not exist`);
+        res.status(404).send(`An account for "${id}" does not exist`);
         return;
     }
 
@@ -176,8 +169,7 @@ app.get('/users/:userId/ingredients/:type', async (req, res) => {
     // is this a valid type?
     if (!isUserIngredientType(type)) {
         // bad type
-        res.statusCode = 400;
-        res.send(`"${type}" is not a valid ingredient type.`)
+        res.status(400).send(`"${type}" is not a valid ingredient type.`)
         return;
     }
 
@@ -222,15 +214,13 @@ app.post('/users/:userId/ingredients/:type', async (req, res) => {
     // is this a valid type?
     if (!isUserIngredientType(type)) {
         // bad type
-        res.statusCode = 400;
-        res.send(`"${type}" is not a valid ingredient type.`)
+        res.status(400).send(`"${type}" is not a valid ingredient type.`)
         return;
     }
 
     // is this a valid formed ingredient?
     if (!isIngredient(ingredient)) {
-        res.statusCode = 400;
-        res.send("The provided ingredient does not have the correct attributes.")
+        res.status(400).send("The provided ingredient does not have the correct attributes.")
         return;
     }
 
@@ -239,8 +229,7 @@ app.post('/users/:userId/ingredients/:type', async (req, res) => {
     const usersCollection = db.collection("users");
     const userQuery = await usersCollection.where("id", "==", userId).get();
     if (userQuery.empty) {
-        res.statusCode = 404;
-        res.send(`"${userId}" was not found`);
+        res.status(404).send(`"${userId}" was not found`);
         return;
     }
 
