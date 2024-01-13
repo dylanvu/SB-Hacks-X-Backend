@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { User, isUserIngredientType, Ingredient, isIngredient, isUser, Auth } from "../types/types";
+import { User, isUserIngredientType, Ingredient, isIngredient, isUser, Auth, userIngredientType } from "../types/types";
 
 // create the firebase application using the service account
 initializeApp({
@@ -153,7 +153,57 @@ app.post('/users/:userId', async (req, res) => {
 });
 
 app.get('/users/:userId', async (req, res) => {
-    console.log(req.params);
+    const userId = req.params.userId;
+    if (!userId || userId.length === 0) {
+        res.status(400).send("User id is missing");
+        return;
+    }
+
+    // figure out what they are asking for
+    const usersCollection = db.collection("users");
+    const userQuery = await usersCollection.where("id", "==", userId).get();
+    if (userQuery.empty) {
+        res.status(404).send(`"${userId}" was not found`);
+        return;
+    }
+
+    // return the first user
+    const user = userQuery.docs[0]
+    const userFirestoreData = user.data();
+    const userRef = user.ref;
+
+    // obtain the user's current ingredient count
+    const inventoryType: userIngredientType = "inventory"
+    const ingredients = userRef.collection(inventoryType);
+    const inventoryCount = (await ingredients.count().get()).data().count;
+
+
+    // obtain the user's trashed count
+    const trashedType: userIngredientType = "trashed"
+    const trashed = userRef.collection(trashedType);
+    const trashedCount = (await trashed.count().get()).data().count;
+
+    // compute life time
+    const lifetime = inventoryCount + trashedCount;
+
+    // obtain the dishes
+    const dishes = userRef.collection("dishes");
+    const dishesCount = (await dishes.count().get()).data().count;
+
+    // add to the userData
+    const userData = {
+        ...userFirestoreData,
+        statistics: {
+            ingredients: lifetime,
+            trashed: trashedCount,
+            dishes: dishesCount
+        }
+    }
+
+    // response
+    res.status(200).json({
+        data: userData
+    });
 })
 
 // user's ingredients

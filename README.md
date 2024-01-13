@@ -19,18 +19,27 @@
         * JWT to be saved as a cookie?
 * GET - user information
     * Endpoint: "/users/:userId"
+    * Returns a user object and the count of ingredients, dishes, and trashed
     * Params:
         * user ID
         * JWT
     * Returns:
         * User object
-* POST - user information
-    * Endpoint: "/users/:userId"
-    * Params:
-        * user ID
-        * JWT
-    * Returns:
-        * User object
+        ```json
+        {
+            "data": {
+                "id": "dylanvu9@gmail.com",
+                "points": 0,
+                "pfp": "",
+                "name": "Dylan Vu",
+                "statistics": {
+                    "ingredients": 3,
+                    "trashed": 1,
+                    "dishes": 0
+                }
+            }
+        }
+        ```
 * GET - leaderboard information
     * Endpoint: "/leaderboard"
     * Params:
@@ -56,6 +65,24 @@
         * type (inventory or trashed)
     * Returns:
         * Array of user's ingredients in the type specified
+        ```json
+        {
+            "data": [
+                {
+                    "quantity": 3,
+                    "name": "Apple",
+                    "expiration": 1705765501,
+                    "points": 1
+                },
+                {
+                    "quantity": 1,
+                    "name": "test",
+                    "expiration": 1,
+                    "points": 1
+                }
+            ]
+        }
+        ```
 * GET - user dish information
     * Endpoint: "/users/:userId/dishes"
     * Params:
@@ -83,3 +110,7 @@
         * new dish information
     * Returns:
         * status code
+
+### Nice to Haves
+* Password reset route
+* PUT auth (for reset password)
