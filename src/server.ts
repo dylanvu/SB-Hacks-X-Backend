@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { User, isUserIngredientType, Ingredient, isIngredient, isUser, Auth, userIngredientType } from "../types/types";
+import { isUserIngredientType, isIngredient, isUser, userIngredientType } from "../types/types";
 
 // create the firebase application using the service account
 initializeApp({
@@ -35,17 +35,12 @@ const saltRounds = 10;
 // configure some middleware to parse JSON and URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/users/*', (req, res, next) => {
+    // TODO: secure this endpoint with a JWT
+    next()
+})
 
 app.get('/', async (req, res) => {
-    // const collection = db.collection("users");
-    // const testDoc = collection.doc("test");
-
-    // // get the actual data contained in the document
-    // const snapshot = await testDoc.get();
-    // const data = snapshot.data();
-
-    // console.log(data);
-
     res.send("Hello World!");
 });
 
@@ -145,11 +140,6 @@ app.post('/login', async (req, res) => {
         // invalid attempt
         res.status(401).send(`The passwords did not match up to user ID ${id}`);
     }
-})
-
-// users
-app.post('/users/:userId', async (req, res) => {
-    console.log(req.params);
 });
 
 app.get('/users/:userId', async (req, res) => {

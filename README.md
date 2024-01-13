@@ -19,6 +19,7 @@
         * JWT to be saved as a cookie?
 * GET - user information
     * Endpoint: "/users/:userId"
+    * Implemented
     * Returns a user object and the count of ingredients, dishes, and trashed
     * Params:
         * user ID
@@ -51,6 +52,7 @@
     * Endpoint: "/users/:userId"
     * Params:
         * new user information
+        * JWT
     * Returns:
         * status code
 
