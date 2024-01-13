@@ -3,6 +3,7 @@
 ## Routes
 * POST - new account
     * Endpoint: "/register"
+    * Implemented
     * Params:
         * User object
         * password
@@ -46,6 +47,7 @@
 ### Ingredients and Dishes
 * GET - user ingredient information
     * Endpoint: "/users/:userId/ingredients/:type
+    * Implemented
     * Gets the ingredients in the specified collection
     * Params:
         * user ID
@@ -62,6 +64,7 @@
         * Array of user's dishes
 * POST - new ingredient
     * Endpoint: "/users/:userId/ingredients/:type"
+    * Implemented
     * Creates a new ingredient in the specified collection
     * Params:
         * user ID
