@@ -1,17 +1,27 @@
 import express from "express";
 import serviceAccount from "../service_account.json";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 // import what's needed for the firebase admin module
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { User, isUserIngredientType, Ingredient, isIngredient, isUser } from "../types/types";
+import { User, isUserIngredientType, Ingredient, isIngredient, isUser, Auth } from "../types/types";
 
 // create the firebase application using the service account
 initializeApp({
     credential: cert(serviceAccount as ServiceAccount)
 });
+
+// load up dotenv stuff
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("Cannot find JWT Secret");
+}
 
 // create the firestore database access in the application
 export const db = getFirestore();
@@ -40,6 +50,9 @@ app.get('/', async (req, res) => {
 });
 
 // login and account system
+/**
+ * create an account
+ */
 app.post('/account', async (req, res) => {
     // parse the req
     const password = req.body.password;
@@ -93,6 +106,52 @@ app.post('/account', async (req, res) => {
     });
 
     res.sendStatus(201);
+});
+
+app.post('/login', async (req, res) => {
+    // grab the information needed
+    const id = req.body.id;
+    const password = req.body.password;
+
+    if (!id || id.length === 0) {
+        res.statusCode = 400;
+        res.send("The user ID is missing");
+        return;
+    }
+
+    if (!password || password.length === 0) {
+        res.statusCode = 400;
+        res.send("The user password is missing");
+        return;
+    }
+
+    // load the password from the database
+    const authCollection = db.collection("auth");
+
+    const passwordQuery = await authCollection.where("id", "==", id).get();
+    if (passwordQuery.empty) {
+        res.statusCode = 404;
+        res.send(`An account for "${id}" does not exist`);
+        return;
+    }
+
+    // compare hashed password to inputted password
+    // get the first user that matches
+    const authData = passwordQuery.docs[0].data();
+    const hashedPassword = authData.password;
+    const match = await bcrypt.compare(password, hashedPassword);
+
+    if (match) {
+        // generate and return a JWT of the user id to the user
+        const token = jwt.sign(id, JWT_SECRET);
+        // return the token back to the user
+        res.status(201).json({
+            data: token
+        })
+    } else {
+        // invalid attempt
+        res.status(401).send(`The passwords did not match up to user ID ${id}`);
+    }
 })
 
 // users
@@ -105,6 +164,9 @@ app.get('/users/:userId', async (req, res) => {
 })
 
 // user's ingredients
+/**
+ * get the ingredients associated with a type, for the specified user
+ */
 app.get('/users/:userId/ingredients/:type', async (req, res) => {
     // figure out who's asking
     const params = req.params;
@@ -124,8 +186,7 @@ app.get('/users/:userId/ingredients/:type', async (req, res) => {
     const usersCollection = db.collection("users");
     const userQuery = await usersCollection.where("id", "==", userId).get();
     if (userQuery.empty) {
-        res.statusCode = 404;
-        res.send(`"${userId}" was not found`);
+        res.status(404).send(`"${userId}" was not found`);
         return;
     }
 
@@ -142,9 +203,14 @@ app.get('/users/:userId/ingredients/:type', async (req, res) => {
     });
 
     // return the ingredients
-    res.send(inventory);
+    res.status(200).json({
+        data: inventory
+    });
 })
 
+/**
+ * add a new ingredient to the ingredients associated with a type, for the specified user
+ */
 app.post('/users/:userId/ingredients/:type', async (req, res) => {
     // figure out who's asking
     const params = req.params;
