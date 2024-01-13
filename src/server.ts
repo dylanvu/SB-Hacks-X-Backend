@@ -1,11 +1,12 @@
 import express from "express";
 import serviceAccount from "../service_account.json";
+import bcrypt from "bcrypt";
 
 // import what's needed for the firebase admin module
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { User, isUserIngredientType, Ingredient, isIngredient } from "../types/types";
+import { User, isUserIngredientType, Ingredient, isIngredient, isUser } from "../types/types";
 
 // create the firebase application using the service account
 initializeApp({
@@ -17,6 +18,9 @@ export const db = getFirestore();
 
 const app = express();
 const port = 5000;
+
+// password and salting
+const saltRounds = 10;
 
 // configure some middleware to parse JSON and URL-encoded bodies
 app.use(express.json());
@@ -34,6 +38,62 @@ app.get('/', async (req, res) => {
 
     res.send("Hello World!");
 });
+
+// login and account system
+app.post('/account', async (req, res) => {
+    // parse the req
+    const password = req.body.password;
+    let user = req.body.user;
+
+    // check if all fields are present to create the user
+    // add a default point system
+    user["points"] = 0;
+
+    // check if user looks good enough
+    if (!isUser(user)) {
+        res.statusCode = 400;
+        res.send("The provided user information is incomplete.");
+        return;
+    }
+
+    // password
+    if (!password) {
+        res.statusCode = 400;
+        res.send("Password was not provided.");
+        return;
+    }
+
+    // check if the user already exists
+    const usersCollection = db.collection("users");
+    const userQuery = await usersCollection.where("id", "==", user.id).get();
+    if (!userQuery.empty) {
+        res.statusCode = 409;
+        res.send(`"${user.id}" already exists`);
+        return;
+    }
+
+    // check password validity
+
+    if (password.length === 0) {
+        res.statusCode = 400;
+        res.send("Password length was 0");
+        return;
+    }
+
+    // generate the hashed password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // create the user
+    await usersCollection.add(user);
+
+    // create the auth document
+    const authCollection = db.collection("auth");
+    await authCollection.add({
+        id: user.id,
+        password: hashedPassword
+    });
+
+    res.sendStatus(201);
+})
 
 // users
 app.post('/users/:userId', async (req, res) => {

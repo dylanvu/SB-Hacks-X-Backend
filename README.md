@@ -2,9 +2,9 @@
 
 ## Routes
 * POST - new account
-    * Endpoint: "/account"
+    * Endpoint: "/register"
     * Params:
-        * username
+        * User object
         * password
     * Returns:
         * success code
@@ -67,7 +67,8 @@
         * user ID
         * JWT
         * type (inventory or trashed)
-        * new ingredient information
+    * Body:
+        * ingredient - Ingredient object
     * Returns:
         * status code
 * POST - new dish

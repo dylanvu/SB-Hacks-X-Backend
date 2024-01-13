@@ -19,12 +19,6 @@ export interface User {
     name: string,
 
     /**
-     * password/passphrase
-     */
-    password: string,
-
-
-    /**
      * what's currently in the user's fridge
      */
     inventory: Ingredient[],
@@ -33,6 +27,16 @@ export interface User {
      */
     trashed: Ingredient[],
     // calculate additional statistics as needed: number of ingredients bought (history), number of dishes cooked (look through other document), number of ingredients trashed
+}
+
+export function isUser(value: any): value is User {
+    return (
+        typeof value === 'object' &&
+        typeof value.id === 'string' &&
+        typeof value.points === 'number' &&
+        typeof value.pfp === 'string' &&
+        typeof value.name === 'string'
+    );
 }
 
 export interface Dish {
@@ -77,7 +81,12 @@ export interface Ingredient {
     points: number,
 }
 
-export function isIngredient(value: any) {
+export interface Auth {
+    id: string,
+    password: string
+}
+
+export function isIngredient(value: any): value is Ingredient {
     return (
         typeof value === 'object' &&
         typeof value.name === 'string' &&
