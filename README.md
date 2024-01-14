@@ -104,10 +104,10 @@
             ]
         }
         ```
-* DELETE - user ingredient information
-    * Endpoint: "/users/:userId/ingredients/:type
+* POST - delete user ingredient information
+    * Endpoint: "/users/:userId/ingredients/:type/delete
     * Implemented
-    * Deletes the ingredients in the specified collection
+    * Deletes the ingredients in the specified collection, and then adds it to the trashed collection
     * Gets matched by the ingredient name and expiration date
     * Params:
         * user ID (in url)

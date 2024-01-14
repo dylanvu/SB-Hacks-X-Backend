@@ -9,7 +9,7 @@ import cors from "cors";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { isUserIngredientType, isIngredient, isUser, userIngredientType, isDish, Dish } from "../types/types";
+import { isUserIngredientType, isIngredient, isUser, userIngredientType, isDish, Dish, Ingredient } from "../types/types";
 import { getIDfromJWT } from "./util";
 
 // create the firebase application using the service account
@@ -198,23 +198,20 @@ app.get('/users/:userId', async (req, res) => {
     const trashedCount = (await trashed.count().get()).data().count;
 
     // compute life time
-    const lifetime = inventoryCount + trashedCount;
+    let lifetime = inventoryCount + trashedCount;
 
     // obtain the dishes
     const dishes = userRef.collection("dishes");
     const dishesCount = (await dishes.count().get()).data().count;
 
     // get all the dishes to count the ingredients for points
-    // let points = 0;
-    // const dishesSnapshot = await dishes.get();
-    // if (dishesSnapshot.empty) {
-    //     points = 0;
-    // } else {
-    //     dishesSnapshot.forEach(dish => {
-    //         const dishData = dish.data() as Dish;
-    //         points += dishData.ingredients.length;
-    //     });
-    // }
+    const dishesSnapshot = await dishes.get();
+    if (!dishesSnapshot.empty) {
+        dishesSnapshot.forEach(dish => {
+            const dishData = dish.data() as Dish;
+            lifetime += dishData.ingredients.length;
+        });
+    }
 
     // add to the userData
     const userData = {
@@ -298,7 +295,7 @@ app.get('/users/:userId/ingredients/:type', async (req, res) => {
     });
 })
 
-app.delete('/users/:userId/ingredients/:type', async (req, res) => {
+app.post('/users/:userId/ingredients/:type/delete', async (req, res) => {
     // figure out who's asking
     const params = req.params;
     const type = params.type;
@@ -367,10 +364,19 @@ app.delete('/users/:userId/ingredients/:type', async (req, res) => {
         res.status(404).send(`Ingredient "${name}" expiring on ${exp} was not found`);
         return;
     }
-    // return all the ingredients
+    let trashed: Ingredient[] = []
+    // delete all the ingredients
     ingredientSnapshot.forEach(async (doc) => {
+        const ingredientData = doc.data();
+        trashed.push(ingredientData as Ingredient);
         await ingredients.doc(doc.id).delete();
     });
+
+    // loop through and add to trashed ingredients
+    const trashedCollection = user.collection("trashed");
+    for (const ingredient of trashed) {
+        await trashedCollection.add(ingredient)
+    }
 
     // return the ingredients
     res.sendStatus(202);
