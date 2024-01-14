@@ -40,7 +40,9 @@ app.use('/users/*', (req, res, next) => {
     // TODO: secure this endpoint with a JWT
     next()
 });
-app.use(cors())
+app.use(cors({
+    origin: '*'
+}))
 
 app.get('/', async (req, res) => {
     res.send("Hello World!");
