@@ -71,7 +71,7 @@ export function isDish(value: any): value is Dish {
     return (
         typeof value === 'object' &&
         typeof value.name === 'string' &&
-        typeof value.user === 'number' &&
+        typeof value.user === 'string' &&
         Array.isArray(value.ingredients) &&
         value.ingredients.every((ingredient: any) => isIngredient(ingredient)) &&
         typeof value.img === 'string' &&
