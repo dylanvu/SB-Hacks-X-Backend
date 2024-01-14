@@ -9,7 +9,7 @@ import cors from "cors";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { isUserIngredientType, isIngredient, isUser, userIngredientType, isDish } from "../types/types";
+import { isUserIngredientType, isIngredient, isUser, userIngredientType, isDish, Dish } from "../types/types";
 import { getIDfromJWT } from "./util";
 
 // create the firebase application using the service account
@@ -204,13 +204,25 @@ app.get('/users/:userId', async (req, res) => {
     const dishes = userRef.collection("dishes");
     const dishesCount = (await dishes.count().get()).data().count;
 
+    // get all the dishes to count the ingredients for points
+    // let points = 0;
+    // const dishesSnapshot = await dishes.get();
+    // if (dishesSnapshot.empty) {
+    //     points = 0;
+    // } else {
+    //     dishesSnapshot.forEach(dish => {
+    //         const dishData = dish.data() as Dish;
+    //         points += dishData.ingredients.length;
+    //     });
+    // }
+
     // add to the userData
     const userData = {
         ...userFirestoreData,
         statistics: {
             ingredients: lifetime,
             trashed: trashedCount,
-            dishes: dishesCount
+            dishes: dishesCount,
         }
     }
 
@@ -472,11 +484,16 @@ app.post("/users/:userId/dishes", async (req, res) => {
     }
 
     // get the first user that matches
-    const user = userQuery.docs[0].ref;
-    const dishes = user.collection("dishes");
+    const user = userQuery.docs[0];
+    const points = user.data().points;
+    const userRef = user.ref
+    const dishes = userRef.collection("dishes");
 
     // create a new document
     await dishes.add(dish);
+
+    // add points to the user
+    await userRef.update({ points: points + dish.ingredients.length })
 
     res.sendStatus(201);
 
