@@ -106,6 +106,7 @@
         ```
 * DELETE - user ingredient information
     * Endpoint: "/users/:userId/ingredients/:type
+    * Implemented
     * Deletes the ingredients in the specified collection
     * Gets matched by the ingredient name and expiration date
     * Params:
