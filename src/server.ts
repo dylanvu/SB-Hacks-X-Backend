@@ -9,7 +9,7 @@ import cors from "cors";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
-import { isUserIngredientType, isIngredient, isUser, userIngredientType } from "../types/types";
+import { isUserIngredientType, isIngredient, isUser, userIngredientType, isDish } from "../types/types";
 
 // create the firebase application using the service account
 initializeApp({
@@ -286,6 +286,35 @@ app.post('/users/:userId/ingredients/:type', async (req, res) => {
 
     // successfully posted
     res.sendStatus(201);
+})
+
+app.post("/users/:userId/dishes", async (req, res) => {
+    // figure out who's asking
+    const userId = req.params.userId;
+    const dish = req.body.dish;
+
+    const usersCollection = db.collection("users");
+    const userQuery = await usersCollection.where("id", "==", userId).get();
+    if (userQuery.empty) {
+        res.status(404).send(`"${userId}" was not found`);
+        return;
+    }
+
+    // ensure the dish is valid
+    if (!isDish(dish)) {
+        res.status(400).send("The dish is missing attributes");
+        return;
+    }
+
+    // get the first user that matches
+    const user = userQuery.docs[0].ref;
+    const dishes = user.collection("dishes");
+
+    // create a new document
+    await dishes.add(dish);
+
+    res.sendStatus(201);
+
 })
 
 app.get("/leaderboard", async (req, res) => {

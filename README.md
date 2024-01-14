@@ -125,6 +125,7 @@
         * status code
 * POST - new dish
     * Endpoint: "/users/:userId/dishes"
+    * Implemented
     * Params:
         * user ID
         * JWT
