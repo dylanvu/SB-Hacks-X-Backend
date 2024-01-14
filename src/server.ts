@@ -133,7 +133,7 @@ app.post('/login', async (req, res) => {
 
     if (match) {
         // generate and return a JWT of the user id to the user
-        const token = jwt.sign(id, JWT_SECRET);
+        const token = jwt.sign({ id }, JWT_SECRET, { expiresIn: "24h" });
         // return the token back to the user
         res.status(201).json({
             data: token

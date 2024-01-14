@@ -2,7 +2,7 @@
 
 ## Routes
 * POST - new account
-    * Endpoint: "/register"
+    * Endpoint: "/account"
     * Implemented
     * Params:
         * User object
