@@ -244,6 +244,62 @@ app.get('/users/:userId/ingredients/:type', async (req, res) => {
     });
 })
 
+app.delete('/users/:userId/ingredients/:type', async (req, res) => {
+    // figure out who's asking
+    const params = req.params;
+    const userId = params.userId;
+    const type = params.type;
+
+    // get information from the body
+    const name = req.body.name;
+    const exp = req.body.expiration;
+
+    // is this a valid type?
+    if (!isUserIngredientType(type)) {
+        // bad type
+        res.status(400).send(`"${type}" is not a valid ingredient type.`)
+        return;
+    }
+
+    // check if name and exp are provided
+    if (name === undefined || name.length === 0) {
+        res.status(400).send("missing ingredient name");
+        return;
+    }
+
+    if (exp === undefined) {
+        res.status(400).send("missing expiration date to match");
+        return;
+    }
+
+    // who is requesting this?
+    // figure out what they are asking for
+    const usersCollection = db.collection("users");
+    const userQuery = await usersCollection.where("id", "==", userId).get();
+    if (userQuery.empty) {
+        res.status(404).send(`"${userId}" was not found`);
+        return;
+    }
+
+    // get the first user that matches
+    const user = userQuery.docs[0].ref;
+    const ingredients = user.collection(type);
+
+    // get the ingredients that match the input
+    const ingredientSnapshot = await ingredients.where("name", "==", name).where("expiration", "==", exp).get();
+    if (ingredientSnapshot.empty) {
+        res.status(404).send(`Ingredient "${name}" expiring on ${exp} was not found`);
+        return;
+    }
+    // return all the ingredients
+    ingredientSnapshot.forEach(async (doc) => {
+        await ingredients.doc(doc.id).delete();
+    });
+
+    // return the ingredients
+    res.sendStatus(202);
+})
+
 /**
  * add a new ingredient to the ingredients associated with a type, for the specified user
  */

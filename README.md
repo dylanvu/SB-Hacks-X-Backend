@@ -104,6 +104,18 @@
             ]
         }
         ```
+* DELETE - user ingredient information
+    * Endpoint: "/users/:userId/ingredients/:type
+    * Deletes the ingredients in the specified collection
+    * Gets matched by the ingredient name and expiration date
+    * Params:
+        * user ID (in url)
+        * JWT required
+        * type (inventory or trashed) (in url)
+        * ingredient name to be matched exactly
+        * ingredient expiration unix time stamp to be matched exactly
+    * Returns
+        * status code for successful deletion
 * GET - user dish information
     * Endpoint: "/users/:userId/dishes"
     * Params:
