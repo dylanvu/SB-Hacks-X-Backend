@@ -488,6 +488,19 @@ app.post("/users/:userId/dishes", async (req, res) => {
     const points = user.data().points;
     const userRef = user.ref
     const dishes = userRef.collection("dishes");
+    const ingredients = userRef.collection("inventory")
+
+    // delete the ingredients from the user's inventory
+    for (const ingredient of dish.ingredients) {
+        // get the ingredients that match the input
+        const ingredientSnapshot = await ingredients.where("name", "==", ingredient.name).where("expiration", "==", ingredient.expiration).get();
+        if (!ingredientSnapshot.empty) {
+            // return all the ingredients
+            ingredientSnapshot.forEach(async (doc) => {
+                await ingredients.doc(doc.id).delete();
+            });
+        }
+    }
 
     // create a new document
     await dishes.add(dish);
