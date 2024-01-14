@@ -10,6 +10,7 @@ import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
 import { isUserIngredientType, isIngredient, isUser, userIngredientType, isDish } from "../types/types";
+import { getIDfromJWT } from "./util";
 
 // create the firebase application using the service account
 initializeApp({
@@ -36,10 +37,6 @@ const saltRounds = 10;
 // configure some middleware to parse JSON and URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/users/*', (req, res, next) => {
-    // TODO: secure this endpoint with a JWT
-    next()
-});
 app.use(cors({
     origin: '*'
 }))
@@ -147,7 +144,30 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/users/:userId', async (req, res) => {
-    const userId = req.params.userId;
+
+    /**
+    * handle the JWT and authentication
+    */
+    const token = req.headers["token"];
+    if (!token) {
+        res.status(401).send("Missing JWT from headers");
+        return;
+    }
+
+    if (!(typeof token === "string")) {
+        // malformed
+        res.status(401).send("JWT is not a string");
+        return;
+    }
+    let userId = getIDfromJWT(token, JWT_SECRET);
+    if (!userId) {
+        res.status(401).send("JWT is invalid");
+        return;
+    }
+    if (typeof userId === "object") {
+        userId = userId.id;
+    }
+
     if (!userId || userId.length === 0) {
         res.status(400).send("User id is missing");
         return;
@@ -207,8 +227,30 @@ app.get('/users/:userId', async (req, res) => {
 app.get('/users/:userId/ingredients/:type', async (req, res) => {
     // figure out who's asking
     const params = req.params;
-    const userId = params.userId;
     const type = params.type;
+
+    /**
+     * handle the JWT and authentication
+     */
+    const token = req.headers["token"];
+    if (!token) {
+        res.status(401).send("Missing JWT from headers");
+        return;
+    }
+
+    if (!(typeof token === "string")) {
+        // malformed
+        res.status(401).send("JWT is not a string");
+        return;
+    }
+    let userId = getIDfromJWT(token, JWT_SECRET);
+    if (!userId) {
+        res.status(401).send("JWT is invalid");
+        return;
+    }
+    if (typeof userId === "object") {
+        userId = userId.id;
+    }
 
     // is this a valid type?
     if (!isUserIngredientType(type)) {
@@ -247,7 +289,6 @@ app.get('/users/:userId/ingredients/:type', async (req, res) => {
 app.delete('/users/:userId/ingredients/:type', async (req, res) => {
     // figure out who's asking
     const params = req.params;
-    const userId = params.userId;
     const type = params.type;
 
     // get information from the body
@@ -270,6 +311,29 @@ app.delete('/users/:userId/ingredients/:type', async (req, res) => {
     if (exp === undefined) {
         res.status(400).send("missing expiration date to match");
         return;
+    }
+
+    /**
+    * handle the JWT and authentication
+    */
+    const token = req.headers["token"];
+    if (!token) {
+        res.status(401).send("Missing JWT from headers");
+        return;
+    }
+
+    if (!(typeof token === "string")) {
+        // malformed
+        res.status(401).send("JWT is not a string");
+        return;
+    }
+    let userId = getIDfromJWT(token, JWT_SECRET);
+    if (!userId) {
+        res.status(401).send("JWT is invalid");
+        return;
+    }
+    if (typeof userId === "object") {
+        userId = userId.id;
     }
 
     // who is requesting this?
@@ -306,9 +370,8 @@ app.delete('/users/:userId/ingredients/:type', async (req, res) => {
 app.post('/users/:userId/ingredients/:type', async (req, res) => {
     // figure out who's asking
     const params = req.params;
-    const userId = params.userId;
     const type = params.type;
-
+    console.log(req.body);
     const ingredient = req.body.ingredient;
 
     // is this a valid type?
@@ -320,8 +383,32 @@ app.post('/users/:userId/ingredients/:type', async (req, res) => {
 
     // is this a valid formed ingredient?
     if (!isIngredient(ingredient)) {
+        console.log(ingredient)
         res.status(400).send("The provided ingredient does not have the correct attributes.")
         return;
+    }
+
+    /**
+ * handle the JWT and authentication
+ */
+    const token = req.headers["token"];
+    if (!token) {
+        res.status(401).send("Missing JWT from headers");
+        return;
+    }
+
+    if (!(typeof token === "string")) {
+        // malformed
+        res.status(401).send("JWT is not a string");
+        return;
+    }
+    let userId = getIDfromJWT(token, JWT_SECRET);
+    if (!userId) {
+        res.status(401).send("JWT is invalid");
+        return;
+    }
+    if (typeof userId === "object") {
+        userId = userId.id;
     }
 
     // who is requesting this?
@@ -346,8 +433,30 @@ app.post('/users/:userId/ingredients/:type', async (req, res) => {
 
 app.post("/users/:userId/dishes", async (req, res) => {
     // figure out who's asking
-    const userId = req.params.userId;
     const dish = req.body.dish;
+
+    /**
+    * handle the JWT and authentication
+    */
+    const token = req.headers["token"];
+    if (!token) {
+        res.status(401).send("Missing JWT from headers");
+        return;
+    }
+
+    if (!(typeof token === "string")) {
+        // malformed
+        res.status(401).send("JWT is not a string");
+        return;
+    }
+    let userId = getIDfromJWT(token, JWT_SECRET);
+    if (!userId) {
+        res.status(401).send("JWT is invalid");
+        return;
+    }
+    if (typeof userId === "object") {
+        userId = userId.id;
+    }
 
     const usersCollection = db.collection("users");
     const userQuery = await usersCollection.where("id", "==", userId).get();
